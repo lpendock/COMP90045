@@ -152,7 +152,7 @@ pString
 
 pAddOp, pMulOp, pSubOp, pDivOp :: Parser (Expr -> Expr -> Expr)
 pEqOp, pNeqOp, pLeqOp, pGeqOp :: Parser (Expr -> Expr -> Expr)
-pGreOP, pLesOp :: Parser (Expr -> Expr -> Expr)
+pGreOP, pLesOp, pAndOp, pOrOp :: Parser (Expr -> Expr -> Expr)
 
 pAddOp
   = do 
@@ -198,6 +198,16 @@ pLesOp
     = do
         reservedOp "<"
         return Les
+
+pAndOp
+    = do
+        reservedOp "&&"
+        return And
+
+pOrOp
+    = do
+        reservedOp "||"
+        return Or
 
 pTerm 
   = chainl1 pFactor pMulOp
