@@ -31,9 +31,9 @@ data Expr
     | Eq Expr Expr
     | Neq Expr Expr
     | Greater Expr Expr
-    | Greq Expr Expr
+    | Geq Expr Expr
     | Less Expr Expr
-    | Lequal Expr Expr
+    | Leq Expr Expr
     | UnaryMinus Expr
     | Not Expr
     deriving (Show, Eq)
