@@ -24,18 +24,20 @@ data Expr
     | IntConst Int
     | StrConst String
     | Id Ident
-    | Add Expr Expr
-    | Sub Expr Expr
-    | Mul Expr Expr
-    | Div Expr Expr
+    | Or Expr Expr
+    | And Expr Expr
+    | Not Expr
     | Eq Expr Expr
     | Neq Expr Expr
     | Greater Expr Expr
     | Geq Expr Expr
     | Less Expr Expr
     | Leq Expr Expr
+    | Add Expr Expr
+    | Sub Expr Expr
+    | Mul Expr Expr
+    | Div Expr Expr
     | UnaryMinus Expr
-    | Not Expr
     deriving (Show, Eq)
 
 data Decl

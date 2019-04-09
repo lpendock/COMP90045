@@ -256,7 +256,7 @@ pLvalue
 -- main
 -----------------------------------------------------------------
 
-pMain :: Parser KidProgram
+pMain :: Parser GoatProgram
 pMain
   = do
       whiteSpace
