@@ -152,7 +152,7 @@ pString
 
 pAddOp, pMulOp, pSubOp, pDivOp :: Parser (Expr -> Expr -> Expr)
 pEqOp, pNeqOp, pLeqOp, pGeqOp :: Parser (Expr -> Expr -> Expr)
-pGreOP, pLesOp, pAndOp, pOrOp :: Parser (Expr -> Expr -> Expr)
+pGreOp, pLesOp, pAndOp, pOrOp :: Parser (Expr -> Expr -> Expr)
 
 pAddOp
   = do 
