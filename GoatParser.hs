@@ -124,9 +124,10 @@ pAsg
 pCall
     = do 
         reserved "call"
-        exp <- (pString <|> pExp)
+        lvalue <- pLvalue
+        rvalue <- pExp
         semi
-        return (Call exp)
+        return (Call lvalue rvalue)
 
 -----------------------------------------------------------------
 --  pExp is the main parser for expressions. It takes into account
