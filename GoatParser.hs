@@ -126,7 +126,7 @@ pCall
 		reserved "call"
 		lvalue <- pLvalue
 		reservedOp "("
-		rvalue <- [pExp]
+		rvalue <- many (pExp)
 		reservedOp ")"
 		semi
 		return (Call lvalue rvalue)
