@@ -42,7 +42,7 @@ myReserved =
     ["begin", "bool", "call", "do", "else", "end", "false", "fi", "float", "if", "int", "od", "proc", "read", "ref", "then", "true", "val", "while", "write"]
 
 myOpnames 
-    = ["||", "&&", "!", "=", "!=", "<", "<=", ">", ">=", "+", "-", "*", "/", ":="]
+    = ["||", "&&", "!", "=", "!=", "<", "<=", ">", ">=", "+", "-", "*", "/", ":=", "(", ")"]
 
 -----------------------------------------------------------------
 --  pProg is the topmost parsing function. It looks for a program
@@ -125,7 +125,9 @@ pCall
     = do 
         reserved "call"
         lvalue <- pLvalue
+        reservedOp "("
         rvalue <- pExp
+        reservedOp ")"
         semi
         return (Call lvalue rvalue)
 
