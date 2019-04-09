@@ -49,7 +49,7 @@ data Stmt
     = Assign Lvalue Expr
     | Read Lvalue
     | Write Expr
-    | Call Ident [Expr]
+    | Call Lvalue [Expr]
     | If Expr [Stmt]
     | IfElse Expr [Stmt] [Stmt]
     | While Expr [Stmt]
