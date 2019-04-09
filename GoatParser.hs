@@ -238,7 +238,7 @@ pParen
         reservedOp "("
         exp <- pFactor
         reservedOp ")"
-        return Paren exp
+        return (Paren exp)
 
 pNum
   = do
