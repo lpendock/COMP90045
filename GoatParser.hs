@@ -192,12 +192,12 @@ pGeqOp
 pGreOp
     = do
         reservedOp ">"
-        return Gre
+        return Greater
 
 pLesOp
     = do
         reservedOp "<"
-        return Les
+        return Less
 
 pAndOp
     = do
