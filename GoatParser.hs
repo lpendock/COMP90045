@@ -9,20 +9,20 @@ import System.Environment
 import System.Exit
 
 type Parser a
-    = Parsec String Int a
+	= Parsec String Int a
 
 lexer :: Q.TokenParser Int
 lexer
-    = Q.makeTokenParser
-        (emptyDef
-        { Q.commentLine     = "#"
-        , Q.nestedComments  = False
-        , Q.identStart      = letter
-        , Q.identLetter     = alphaNum <|> char '_'
-        , Q.opStart         = oneOf "|&!=<>+-*/:"
-        , Q.reservedNames   = myReserved
-        , Q.reservedOpNames = myOpnames
-        })
+	= Q.makeTokenParser
+		(emptyDef
+		{ Q.commentLine     = "#"
+		, Q.nestedComments  = False
+		, Q.identStart      = letter
+		, Q.identLetter     = alphaNum <|> char '_'
+		, Q.opStart         = oneOf "|&!=<>+-*/:"
+		, Q.reservedNames   = myReserved
+		, Q.reservedOpNames = myOpnames
+		})
 
 whiteSpace = Q.whiteSpace lexer
 lexeme     = Q.lexeme lexer
@@ -39,10 +39,10 @@ reservedOp = Q.reservedOp lexer
 myReserved, myOpnames :: [String]
 
 myReserved = 
-    ["begin", "bool", "call", "do", "else", "end", "false", "fi", "float", "if", "int", "od", "proc", "read", "ref", "then", "true", "val", "while", "write"]
+	["begin", "bool", "call", "do", "else", "end", "false", "fi", "float", "if", "int", "od", "proc", "read", "ref", "then", "true", "val", "while", "write"]
 
 myOpnames 
-    = ["||", "&&", "!", "=", "!=", "<", "<=", ">", ">=", "+", "-", "*", "/", ":=", "(", ")"]
+	= ["||", "&&", "!", "=", "!=", "<", "<=", ">", ">=", "+", "-", "*", "/", ":=", "(", ")"]
 
 -----------------------------------------------------------------
 --  pProg is the topmost parsing function. It looks for a program
@@ -51,12 +51,12 @@ myOpnames
 
 pProg :: Parser GoatProgram
 pProg
-    = do
-        reserved "proc"
-        reserved "main"
-        parens (return ())
-        (decls,stmts) <- pProgBody
-        return (Program decls stmts)
+	= do
+		reserved "proc"
+		reserved "main"
+		parens (return ())
+		(decls,stmts) <- pProgBody
+		return (Program decls stmts)
 
 -----------------------------------------------------------------
 --  pProgBody looks for a sequence of declarations followed by a
@@ -65,29 +65,29 @@ pProg
 
 pProgBody :: Parser ([Decl],[Stmt])
 pProgBody
-    = do
-        decls <- many pDecl
-        reserved "begin"
-        stmts <- many1 pStmt
-        reserved "end"
-        return (decls,stmts)
+	= do
+		decls <- many pDecl
+		reserved "begin"
+		stmts <- many1 pStmt
+		reserved "end"
+		return (decls,stmts)
 
 pDecl :: Parser Decl
 pDecl
-    = do
-        basetype <- pBaseType
-        ident <- identifier
-        whiteSpace
-        semi
-        return (Decl ident basetype)
+	= do
+		basetype <- pBaseType
+		ident <- identifier
+		whiteSpace
+		semi
+		return (Decl ident basetype)
 
 pBaseType :: Parser BaseType
 pBaseType
-    = do { reserved "bool"; return BoolType }
-        <|>
-        do { reserved "int"; return IntType }
-        <|>
-        do { reserved "float"; return FloatType}
+	= do { reserved "bool"; return BoolType }
+		<|>
+		do { reserved "int"; return IntType }
+		<|>
+		do { reserved "float"; return FloatType}
 
 -----------------------------------------------------------------
 --  pStmt is the main parser for statements. It wants to recognise
@@ -97,39 +97,39 @@ pBaseType
 pStmt, pRead, pWrite, pAsg, pCall :: Parser Stmt
 
 pStmt 
-    = choice [pRead, pWrite, pAsg, pCall]
+	= choice [pRead, pWrite, pAsg, pCall]
 
 pRead
-    = do 
-        reserved "read"
-        lvalue <- pLvalue
-        semi
-        return (Read lvalue)
+	= do 
+		reserved "read"
+		lvalue <- pLvalue
+		semi
+		return (Read lvalue)
 
 pWrite
-    = do 
-        reserved "write"
-        exp <- (pString <|> pExp)
-        semi
-        return (Write exp)
+	= do 
+		reserved "write"
+		exp <- (pString <|> pExp)
+		semi
+		return (Write exp)
 
 pAsg
-    = do
-        lvalue <- pLvalue
-        reservedOp ":="
-        rvalue <- pExp
-        semi
-        return (Assign lvalue rvalue)
+	= do
+		lvalue <- pLvalue
+		reservedOp ":="
+		rvalue <- pExp
+		semi
+		return (Assign lvalue rvalue)
 
 pCall
-    = do 
-        reserved "call"
-        lvalue <- pLvalue
-        reservedOp "("
-        rvalue <- pExp
-        reservedOp ")"
-        semi
-        return (Call lvalue rvalue)
+	= do 
+		reserved "call"
+		lvalue <- pLvalue
+		reservedOp "("
+		rvalue <- pStmt
+		reservedOp ")"
+		semi
+		return (Call lvalue rvalue)
 
 -----------------------------------------------------------------
 --  pExp is the main parser for expressions. It takes into account
@@ -141,17 +141,17 @@ pExp, pTerm, pFactor, pUminus, pNum, pIdent, pString, pParen :: Parser Expr
 
 pExp 
   = pString <|> (chainl1 pTerm pAddOp)
-    <?>
-    "expression"
+	<?>
+	"expression"
 
 pString 
   = do
-      char '"'
-      str <- many (satisfy (/= '"'))
-      char '"'
-      return (StrConst str)
-    <?>
-    "string"
+	  char '"'
+	  str <- many (satisfy (/= '"'))
+	  char '"'
+	  return (StrConst str)
+	<?>
+	"string"
 
 pAddOp, pMulOp, pSubOp, pDivOp :: Parser (Expr -> Expr -> Expr)
 pEqOp, pNeqOp, pLeqOp, pGeqOp :: Parser (Expr -> Expr -> Expr)
@@ -159,108 +159,108 @@ pGreOp, pLesOp, pAndOp, pOrOp :: Parser (Expr -> Expr -> Expr)
 
 pAddOp
   = do 
-      reservedOp "+"
-      return Add
+	  reservedOp "+"
+	  return Add
 
 pDivOp
-    = do
-        reservedOp "/"
-        return Div
+	= do
+		reservedOp "/"
+		return Div
 
 pSubOp
-    = do
-        reservedOp "-"
-        return Sub
+	= do
+		reservedOp "-"
+		return Sub
 
 pEqOp
-    = do
-        reservedOp "="
-        return Eq
+	= do
+		reservedOp "="
+		return Eq
 
 pNeqOp
-    = do
-        reservedOp "!="
-        return Neq
+	= do
+		reservedOp "!="
+		return Neq
 
 pLeqOp
-    = do
-        reservedOp "<="
-        return Leq
+	= do
+		reservedOp "<="
+		return Leq
 
 pGeqOp
-    = do
-        reservedOp ">="
-        return Geq
+	= do
+		reservedOp ">="
+		return Geq
 
 pGreOp
-    = do
-        reservedOp ">"
-        return Greater
+	= do
+		reservedOp ">"
+		return Greater
 
 pLesOp
-    = do
-        reservedOp "<"
-        return Less
+	= do
+		reservedOp "<"
+		return Less
 
 pAndOp
-    = do
-        reservedOp "&&"
-        return And
+	= do
+		reservedOp "&&"
+		return And
 
 pOrOp
-    = do
-        reservedOp "||"
-        return Or
+	= do
+		reservedOp "||"
+		return Or
 
 pTerm 
   = chainl1 pFactor pMulOp
-    <?>
-    "\"term\""
+	<?>
+	"\"term\""
 
 pMulOp
   = do 
-      reservedOp "*"
-      return Mul
+	  reservedOp "*"
+	  return Mul
 
 pFactor
   = choice [pUminus, parens pExp, pNum, pIdent]
-    <?> 
-    "\"factor\""
+	<?> 
+	"\"factor\""
 
 pUminus
   = do 
-      reservedOp "-"
-      exp <- pFactor
-      return (UnaryMinus exp)
+	  reservedOp "-"
+	  exp <- pFactor
+	  return (UnaryMinus exp)
 
 pParen
-    = do
-        reservedOp "("
-        exp <- pFactor
-        reservedOp ")"
-        return (Paren exp)
+	= do
+		reservedOp "("
+		exp <- pFactor
+		reservedOp ")"
+		return (Paren exp)
 
 pNum
   = do
-      n <- natural <?> ""
-      return (IntConst (fromInteger n :: Int))
-    <?>
-    "number"
+	  n <- natural <?> ""
+	  return (IntConst (fromInteger n :: Int))
+	<?>
+	"number"
 
 pIdent 
   = do
-      ident <- identifier
-      return (Id ident)
-    <?>
-    "identifier"
+	  ident <- identifier
+	  return (Id ident)
+	<?>
+	"identifier"
 
 pLvalue :: Parser Lvalue
 pLvalue
   = do
-      ident <- identifier
-      return (LId ident)
-    <?>
-    "lvalue"
+	  ident <- identifier
+	  return (LId ident)
+	<?>
+	"lvalue"
 
 -----------------------------------------------------------------
 -- main
@@ -269,29 +269,29 @@ pLvalue
 pMain :: Parser GoatProgram
 pMain
   = do
-      whiteSpace
-      p <- pProg
-      eof
-      return p
+	  whiteSpace
+	  p <- pProg
+	  eof
+	  return p
 
 main :: IO ()
 main
   = do { progname <- getProgName
-       ; args <- getArgs
-       ; checkArgs progname args
-       ; input <- readFile (head args)
-       ; let output = runParser pMain 0 "" input
-       ; case output of
-           Right ast -> print ast
-           Left  err -> do { putStr "Parse error at "
-                           ; print err
-                           }
-       }
+	   ; args <- getArgs
+	   ; checkArgs progname args
+	   ; input <- readFile (head args)
+	   ; let output = runParser pMain 0 "" input
+	   ; case output of
+		   Right ast -> print ast
+		   Left  err -> do { putStr "Parse error at "
+						   ; print err
+						   }
+	   }
 
 checkArgs :: String -> [String] -> IO ()
 checkArgs _ [filename]
    = return ()
 checkArgs progname _
    = do { putStrLn ("Usage: " ++ progname ++ " filename\n\n")
-       ; exitWith (ExitFailure 1)
-       }
+	   ; exitWith (ExitFailure 1)
+	   }
