@@ -139,29 +139,22 @@ pCall
 
 pExp, pTerm, pFactor, pUminus, pNum, pIdent, pString :: Parser Expr
 
-pExp 
-  = pString <|> (chainl1 pTerm (choice [pAddOp, pSubOp]))
-	<?>
-	"expression"
 
-pString 
-  = do
-	  char '"'
-	  str <- many (satisfy (/= '"'))
-	  char '"'
-	  return (StrConst str)
-	<?>
-	"string"
 
 pAddOp, pMulOp, pSubOp, pDivOp :: Parser (Expr -> Expr -> Expr)
 pEqOp, pNeqOp, pLeqOp, pGeqOp :: Parser (Expr -> Expr -> Expr)
 pGreOp, pLesOp, pAndOp, pOrOp :: Parser (Expr -> Expr -> Expr)
 
 pAddOp
-  = do 
-	  reservedOp "+"
-	  return Add
+  	= do 
+		reservedOp "+"
+		return Add
 
+pMulOp
+  	= do 
+		reservedOp "*"
+		return Mul
+		  
 pDivOp
 	= do
 		reservedOp "/"
@@ -212,15 +205,24 @@ pOrOp
 		reservedOp "||"
 		return Or
 
+pExp 
+	= pString <|> (chainl1 pTerm (choice [pAddOp, pSubOp]))
+		<?>
+		"expression"
+
+pString 
+	= do
+		char '"'
+		str <- many (satisfy (/= '"'))
+		char '"'
+		return (StrConst str)
+		<?>
+		"string"
+
 pTerm 
   = chainl1 pFactor (choice [pMulOp, pDivOp])
 	<?>
 	"\"term\""
-
-pMulOp
-  = do 
-	  reservedOp "*"
-	  return Mul
 
 pFactor
   = choice [pUminus, parens pExp, pNum, pIdent]
