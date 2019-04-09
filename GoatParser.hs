@@ -213,7 +213,7 @@ pOrOp
 		return Or
 
 pTerm 
-  = chainl1 pFactor pMulOp <|> chainl1 pFactor pDivOp
+  = chainl1 pFactor choice [pMulOp, pDivOp]
 	<?>
 	"\"term\""
 
