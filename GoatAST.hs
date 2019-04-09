@@ -38,7 +38,6 @@ data Expr
     | Mul Expr Expr
     | Div Expr Expr
     | UnaryMinus Expr
-    | Paren Expr
     deriving (Show, Eq)
 
 data Decl
