@@ -140,7 +140,7 @@ pCall
 pExp, pTerm, pFactor, pUminus, pNum, pIdent, pString :: Parser Expr
 
 pExp 
-  = pString <|> (chainl1 pTerm pAddOp)
+  = pString <|> (chainl1 pTerm (choice [pAddOp, pSubOp]))
 	<?>
 	"expression"
 
