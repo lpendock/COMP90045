@@ -137,7 +137,7 @@ pCall
 --  are left-associative.
 -----------------------------------------------------------------
 
-pExp, pTerm, pFactor, pUminus, pNum, pIdent, pString :: Parser Expr
+pExp, pTerm, pFactor, pUminus, pNum, pIdent, pString, pParen :: Parser Expr
 
 pExp 
   = pString <|> (chainl1 pTerm pAddOp)
@@ -232,6 +232,13 @@ pUminus
       reservedOp "-"
       exp <- pFactor
       return (UnaryMinus exp)
+
+pParen
+    = do
+        reservedOp "("
+        exp <- pFactor
+        reservedOp ")"
+        return Paren exp
 
 pNum
   = do
