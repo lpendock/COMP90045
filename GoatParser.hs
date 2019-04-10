@@ -3,6 +3,7 @@ module Main where
 import GoatAST
 import Data.Char
 import Text.Parsec
+import Text.Parsec.Expr
 import Text.Parsec.Language (emptyDef)
 import qualified Text.Parsec.Token as Q
 import System.Environment
@@ -137,7 +138,7 @@ pCall
 --  are left-associative.
 -----------------------------------------------------------------
 
-pExp, pTerm, pFactor, pUminus, pNum, pIdent, pString :: Parser Expr
+pExp, pFactor, pUminus, pNum, pIdent, pString :: Parser Expr
 
 
 
@@ -205,10 +206,24 @@ pOrOp
 		reservedOp "||"
 		return Or
 
-pExp 
-	= pString <|> (chainl1 pTerm (choice [pAddOp, pSubOp]))
-		<?>
-		"expression"
+pExp = buildExpressionParser table pFactor
+	<?>
+	"expression"
+
+table = [ [ prefix "-" UnaryMinus ]
+		, [ binary "*" Mul, binary "/" Div ]
+		, [ binary "+" Add, binary "-" Sub ]
+		, [ relation "=" Eq, relation "!=" Neq, relation ">" Greater, relation ">=" Geq, relation "<" Less, relation "<=" Leq]
+		]
+
+prefix name fun
+		= Prefix (do { reservedOp name; return fun })
+
+binary name op 
+		= Infix (do { reservedOp name; return op }) AssocLeft
+
+relation name rel
+		= Infix (do { reservedOp name; return rel }) AssocNone
 
 pString 
 	= do
@@ -219,13 +234,9 @@ pString
 		<?>
 		"string"
 
-pTerm 
-  = chainl1 pFactor (choice [pMulOp, pDivOp])
-	<?>
-	"\"term\""
 
 pFactor
-  = choice [pUminus, parens pExp, pNum, pIdent]
+  = choice [parens pExp, pNum, pIdent]
 	<?> 
 	"\"factor\""
 
