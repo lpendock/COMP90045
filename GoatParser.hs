@@ -40,10 +40,13 @@ reservedOp = Q.reservedOp lexer
 myReserved, myOpnames :: [String]
 
 myReserved = 
-	["begin", "bool", "call", "do", "else", "end", "false", "fi", "float", "if", "int", "od", "proc", "read", "ref", "then", "true", "val", "while", "write"]
+	["begin", "bool", "call", "do", "else", "end", "false", "fi", "float", "if", 
+		"int", "od", "proc", "read", "ref", "then", "true", "val", "while", 
+		"write"]
 
 myOpnames 
-	= ["||", "&&", "!", "=", "!=", "<", "<=", ">", ">=", "+", "-", "*", "/", ":=", "(", ")"]
+	= ["||", "&&", "!", "=", "!=", "<", "<=", ">", ">=", "+", "-", "*", "/", 
+	":=", "(", ")"]
 
 -----------------------------------------------------------------
 --  pProg is the topmost parsing function. It looks for a program
@@ -138,73 +141,7 @@ pCall
 --  are left-associative.
 -----------------------------------------------------------------
 
-pExp, pFactor, pUminus, pNum, pIdent, pString :: Parser Expr
-
-
-
-pAddOp, pMulOp, pSubOp, pDivOp :: Parser (Expr -> Expr -> Expr)
-pEqOp, pNeqOp, pLeqOp, pGeqOp :: Parser (Expr -> Expr -> Expr)
-pGreOp, pLesOp, pAndOp, pOrOp :: Parser (Expr -> Expr -> Expr)
-
-pAddOp
-  	= do 
-		reservedOp "+"
-		return Add
-
-pMulOp
-  	= do 
-		reservedOp "*"
-		return Mul
-		  
-pDivOp
-	= do
-		reservedOp "/"
-		return Div
-
-pSubOp
-	= do
-		reservedOp "-"
-		return Sub
-
-pEqOp
-	= do
-		reservedOp "="
-		return Eq
-
-pNeqOp
-	= do
-		reservedOp "!="
-		return Neq
-
-pLeqOp
-	= do
-		reservedOp "<="
-		return Leq
-
-pGeqOp
-	= do
-		reservedOp ">="
-		return Geq
-
-pGreOp
-	= do
-		reservedOp ">"
-		return Greater
-
-pLesOp
-	= do
-		reservedOp "<"
-		return Less
-
-pAndOp
-	= do
-		reservedOp "&&"
-		return And
-
-pOrOp
-	= do
-		reservedOp "||"
-		return Or
+pExp, pFactor, pNum, pIdent, pString :: Parser Expr
 
 pExp = buildExpressionParser table pFactor
 	<?>
@@ -213,7 +150,8 @@ pExp = buildExpressionParser table pFactor
 table = [ [ prefix "-" UnaryMinus ]
 		, [ binary "*" Mul, binary "/" Div ]
 		, [ binary "+" Add, binary "-" Sub ]
-		, [ relation "=" Eq, relation "!=" Neq, relation ">" Greater, relation ">=" Geq, relation "<" Less, relation "<=" Leq]
+		, [ relation "=" Eq, relation "!=" Neq, relation ">" Greater, 
+			relation ">=" Geq, relation "<" Less, relation "<=" Leq]
 		]
 
 prefix name fun
@@ -239,12 +177,6 @@ pFactor
   = choice [parens pExp, pNum, pIdent]
 	<?> 
 	"\"factor\""
-
-pUminus
-  = do 
-	  reservedOp "-"
-	  exp <- pFactor
-	  return (UnaryMinus exp)
 
 pNum
   = do

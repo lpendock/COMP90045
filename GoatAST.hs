@@ -15,8 +15,8 @@ data Lvalue
     deriving (Show, Eq)
 
 data Binop
-    = Op_add | Op_mul | Op_sub | Op_div | Op_or | Op_and | Op_equal | Op_not_equal 
-    | Op_less | Op_lequal | Op_greater | Op_grequal
+    = Op_add | Op_mul | Op_sub | Op_div | Op_or | Op_and | Op_equal 
+    | Op_not_equal | Op_less | Op_lequal | Op_greater | Op_grequal
     deriving (Show, Eq)
 
 data Expr
