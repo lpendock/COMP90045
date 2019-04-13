@@ -1,2 +1,2 @@
-1. Extend context-free grammar such that it can recognise binary operators
-2. Create pretty printer
+1. Create pretty printer
+2. Add support for composite statements

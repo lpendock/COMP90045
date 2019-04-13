@@ -7,11 +7,11 @@ module GoatAST where
 type Ident = String
 
 data BaseType
-    = BoolType | IntType | FloatType | ArrayType BaseType Integer
+    = BoolType | IntType | FloatType
     deriving (Show, Eq)
 
 data Lvalue
-    = LId Ident
+    = LId Ident Address
     deriving (Show, Eq)
 
 data Binop
@@ -24,7 +24,7 @@ data Expr
     | IntConst Int
     | StrConst String
     | FloatConst Double
-    | Id Ident
+    | Id Ident Address
     | Or Expr Expr
     | And Expr Expr
     | Not Expr
@@ -42,7 +42,13 @@ data Expr
     deriving (Show, Eq)
 
 data Decl
-    = Decl Ident BaseType
+    = Decl Ident BaseType Address
+    deriving (Show, Eq)
+
+data Address 
+    = Array Integer 
+    | Matrix Integer Integer
+    | NoAddress
     deriving (Show, Eq)
 
 data Stmt

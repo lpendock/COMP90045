@@ -50,7 +50,7 @@ myReserved =
 
 myOpnames 
     = ["||", "&&", "!", "=", "!=", "<", "<=", ">", ">=", "+", "-", "*", "/", 
-    ":=", "(", ")"]
+    ":=", "(", ")", "[", "]"]
 
 -----------------------------------------------------------------
 --  pProg is the topmost parsing function. It looks for a program
@@ -101,9 +101,10 @@ pDecl
     = do
         basetype <- pBaseType
         ident <- identifier
+        addr <- pAddr
         whiteSpace
         semi
-        return (Decl ident basetype)
+        return (Decl ident basetype addr)
 
 pBaseType :: Parser BaseType
 pBaseType
@@ -161,7 +162,7 @@ pCall
 --  are left-associative.
 -----------------------------------------------------------------
 
-pExp, pFactor, pNum, pIdent, pString, pFloat :: Parser Expr
+pExp, pFactor, pNum, pIdent, pString, pBool :: Parser Expr
 
 pExp = buildExpressionParser table pFactor
     <?>
@@ -192,18 +193,19 @@ pString
         <?>
         "string"
 
+pBool
+    = do
+        reserved "true"
+        return (BoolConst True)  
+    <|>
+    do
+        reserved "false"
+        return (BoolConst False) 
 
 pFactor
-  = choice [parens pExp, pNum, pIdent]
+  = choice [parens pExp, pNum, pIdent, pBool]
     <?> 
     "\"factor\""
-
-pFloat
-    = do
-        n <- float <?> ""
-        return (FloatConst n)
-    <?>
-    "float"
 
 pNum
   = do
@@ -218,8 +220,9 @@ pNum
 pIdent 
   = do
       ident <- identifier
-      address <- option 0 (brackets natural)
-      return (Id ident)
+      addr <- pAddr
+      whiteSpace
+      return (Id ident addr)
     <?>
     "identifier"
 
@@ -227,19 +230,44 @@ pLvalue :: Parser Lvalue
 pLvalue
   = do
       ident <- identifier
-      return (LId ident)
+      addr <- pAddr
+      whiteSpace
+      return (LId ident addr)
     <?>
     "lvalue"
 
+pAddr, pArray, pMatrix :: Parser Address
+pAddr 
+    = choice[pArray, pMatrix]
+    <|>
+    do { return NoAddress }
+    <?>
+    "address"
+
+pArray 
+    = do
+        char '['
+        n <- natural
+        char ']'
+        return (Array n)
+
+pMatrix 
+    = do
+        char '['
+        m <- natural
+        comma
+        n <- natural
+        char ']'
+        return (Matrix m n)
 -----------------------------------------------------------------
 -- main
 -----------------------------------------------------------------
 
-pMain :: Parser GoatProgram
+pMain :: Parser [GoatProgram]
 pMain
   = do
       whiteSpace
-      p <- pProg
+      p <- many pProg
       eof
       return p
 
