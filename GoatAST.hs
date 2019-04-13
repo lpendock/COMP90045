@@ -7,7 +7,7 @@ module GoatAST where
 type Ident = String
 
 data BaseType
-    = BoolType | IntType | FloatType
+    = BoolType | IntType | FloatType | ArrayType BaseType Integer
     deriving (Show, Eq)
 
 data Lvalue
@@ -23,6 +23,7 @@ data Expr
     = BoolConst Bool
     | IntConst Int
     | StrConst String
+    | FloatConst Double
     | Id Ident
     | Or Expr Expr
     | And Expr Expr
@@ -54,6 +55,11 @@ data Stmt
     | While Expr [Stmt]
     deriving (Show, Eq)
 
+data Parameter
+    = Ref BaseType Ident
+    | Val BaseType Ident
+    deriving (Show, Eq)
+
 data GoatProgram
-    = Program [Decl] [Stmt]
+    = Program String [Parameter] [Decl] [Stmt]
     deriving (Show, Eq)
