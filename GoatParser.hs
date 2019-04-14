@@ -9,6 +9,9 @@ import Text.Parsec.Language (emptyDef)
 import qualified Text.Parsec.Token as Q
 import System.Environment
 import System.Exit
+import GoatPrinter
+
+import Data.Typeable
 
 type Parser a
     = Parsec String Int a
@@ -201,10 +204,12 @@ pExp = buildExpressionParser table pFactor
     "expression"
 
 table = [ [ prefix "-" UnaryMinus ]
-        , [ binary "*" Mul, binary "/" Div ]
-        , [ binary "+" Add, binary "-" Sub ]
-        , [ relation "=" Eq, relation "!=" Neq, relation ">" Greater, 
-            relation ">=" Geq, relation "<" Less, relation "<=" Leq]
+        , [ binary "*" (Binop Mul), binary "/" (Binop Div) ]
+        , [ binary "+" (Binop Add), binary "-" (Binop Sub) ]
+        , [ relation "=" (Binop Equal), relation "!=" (Binop NotEqual)
+            , relation ">" (Binop Greater), relation ">=" (Binop Grequal)
+            , relation "<" (Binop Less), relation "<=" (Binop Lequal)
+          ]
         ]
 
 prefix name fun
@@ -309,7 +314,7 @@ main
        ; input <- readFile (head args)
        ; let output = runParser pMain 0 "" input
        ; case output of
-           Right ast -> print ast
+           Right ast -> putStr (prettyProgram ast)
            Left  err -> do { putStr "Parse error at "
                            ; print err
                            }

@@ -14,9 +14,19 @@ data Lvalue
     = LId Ident Address
     deriving (Show, Eq)
 
-data Binop
-    = Op_add | Op_mul | Op_sub | Op_div | Op_or | Op_and | Op_equal 
-    | Op_not_equal | Op_less | Op_lequal | Op_greater | Op_grequal
+data Operator
+    = Add 
+    | Mul 
+    | Sub 
+    | Div 
+    | Or 
+    | And 
+    | Equal 
+    | NotEqual 
+    | Less 
+    | Lequal 
+    | Greater 
+    | Grequal
     deriving (Show, Eq)
 
 data Expr
@@ -25,19 +35,8 @@ data Expr
     | StrConst String
     | FloatConst Double
     | Id Ident Address
-    | Or Expr Expr
-    | And Expr Expr
     | Not Expr
-    | Eq Expr Expr
-    | Neq Expr Expr
-    | Greater Expr Expr
-    | Geq Expr Expr
-    | Less Expr Expr
-    | Leq Expr Expr
-    | Add Expr Expr
-    | Sub Expr Expr
-    | Mul Expr Expr
-    | Div Expr Expr
+    | Binop Operator Expr Expr
     | UnaryMinus Expr
     deriving (Show, Eq)
 
