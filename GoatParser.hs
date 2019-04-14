@@ -119,10 +119,10 @@ pBaseType
 --  read and write statements, and assignments.
 -----------------------------------------------------------------
 
-pStmt, pRead, pWrite, pAsg, pCall :: Parser Stmt
+pStmt, pRead, pWrite, pAsg, pCall, pIf, pWhile :: Parser Stmt
 
 pStmt 
-    = choice [pRead, pWrite, pAsg, pCall]
+    = choice [pRead, pWrite, pAsg, pCall, pIf, pWhile] 
 
 pRead
     = do 
@@ -155,6 +155,38 @@ pCall
         reservedOp ")"
         semi
         return (Call lvalue rvalue)
+
+pIf
+    = do
+        reserved "if"
+        lvalue <- pExp
+        reserved "then"
+        rvalue <- many1 pStmt
+        stmt <- choice [pJustIf lvalue rvalue, pIfElse lvalue rvalue]
+        return stmt
+
+pJustIf :: Expr -> [Stmt] -> Parser Stmt
+pJustIf lvalue rvalue
+    = do
+        reserved "fi"
+        return (If lvalue rvalue)
+
+pIfElse :: Expr -> [Stmt] -> Parser Stmt
+pIfElse lvalue mvalue
+    = do
+        reserved "else"
+        rvalue <- many1 pStmt
+        reserved "fi"
+        return (IfElse lvalue mvalue rvalue)
+
+pWhile
+    = do
+        reserved "while"
+        lvalue <- pExp
+        reserved "do"
+        rvalue <- many1 pStmt
+        reserved "od"
+        return (While lvalue rvalue)
 
 -----------------------------------------------------------------
 --  pExp is the main parser for expressions. It takes into account
@@ -236,25 +268,23 @@ pLvalue
     <?>
     "lvalue"
 
-pAddr, pArray, pMatrix :: Parser Address
+pAddr :: Parser Address
 pAddr 
-    = choice[pArray, pMatrix]
+    = do {char '['; m <- natural; addr <- choice[pArray m, pMatrix m]; return addr }
     <|>
     do { return NoAddress }
     <?>
     "address"
 
-pArray 
+pArray, pMatrix :: Integer -> Parser Address
+
+pArray n
     = do
-        char '['
-        n <- natural
         char ']'
         return (Array n)
 
-pMatrix 
+pMatrix m
     = do
-        char '['
-        m <- natural
         comma
         n <- natural
         char ']'
