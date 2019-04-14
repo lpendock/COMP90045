@@ -3,6 +3,7 @@ module Main where
 import GoatAST
 import Data.Char
 import Data.Either
+import Data.Maybe
 import Text.Parsec
 import Text.Parsec.Expr
 import Text.Parsec.Language (emptyDef)
@@ -310,20 +311,27 @@ main :: IO ()
 main
   = do { progname <- getProgName
        ; args <- getArgs
-       ; checkArgs progname args
-       ; input <- readFile (head args)
-       ; let output = runParser pMain 0 "" input
-       ; case output of
-           Right ast -> putStr (prettyProgram ast)
-           Left  err -> do { putStr "Parse error at "
-                           ; print err
-                           }
+       ; let file = checkArgs args
+       ; case file of
+            Nothing -> do   {
+                            print "Sorry, cannot generate code yet"
+                            ; exitWith (ExitFailure 1)
+                            }
+            Just x -> do    {
+                            input <- readFile (fromJust file)
+                            ; let output = runParser pMain 0 "" input
+                            ; case output of
+                                Right ast -> putStr (prettyProgram ast)
+                                Left  err -> do { putStr "Parse error at "
+                                            ; print err
+                                            }
+                            }
+       ;
        }
 
-checkArgs :: String -> [String] -> IO ()
-checkArgs _ [filename]
-   = return ()
-checkArgs progname _
-   = do { putStrLn ("Usage: " ++ progname ++ " filename\n\n")
-       ; exitWith (ExitFailure 1)
-       }
+checkArgs :: [String] -> Maybe String
+checkArgs (x1:x2:xs) =
+    if x1 == "-p" 
+        then  Just x2
+        else checkArgs (x2:xs)
+checkArgs _ = Nothing
