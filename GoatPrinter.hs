@@ -3,6 +3,10 @@ module GoatPrinter where
 import GoatAST
 import Data.List
 
+--  A series of functions to provide a pretty representation of the program. I
+--  could have overriden the show functions for all the different types, but I
+--  thought it could be useful to have the AST representation.
+
 prettyProgram :: [GoatProgram] -> String
 prettyProgram x = intercalate "\n" (map prettyFunction x)
 
@@ -90,6 +94,9 @@ prettyExpression (Binop op a b) =
     ++ (prettyExpression' b) ++ ""
 prettyExpression (Not a) = "!" ++ (prettyExpression' a)
 prettyExpression (UnaryMinus a) = "-" ++ (prettyExpression' a)
+
+--  The outermost expression doesn't need a parenthesis, so this function is
+--  called for recursive expressions.
 
 prettyExpression' :: Expr -> String
 prettyExpression' (Binop op a b) = "(" ++ prettyExpression (Binop op a b) ++ ")"
