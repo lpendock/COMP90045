@@ -1,3 +1,6 @@
+--  Luke Pendock lpendock@student.unimelb.edu.au 762169
+--  Xiao Liu xliu18@student.unimelb.edu.au 905945
+
 module Main where
 
 import GoatAST
@@ -165,7 +168,7 @@ pCall
         reserved "call"
         lvalue <- pLvalue
         reservedOp "("
-        rvalue <- many (pExp)
+        rvalue <- (pExp `sepBy` comma)
         reservedOp ")"
         semi
         return (Call lvalue rvalue)
@@ -224,6 +227,7 @@ table = [ [ prefix "-" UnaryMinus ]
             , relation ">" (Binop Greater), relation ">=" (Binop Grequal)
             , relation "<" (Binop Less), relation "<=" (Binop Lequal)
           ]
+        , [ prefix "!" Not ]
         ]
 
 prefix name fun
@@ -293,7 +297,7 @@ pLvalue
 pAddr :: Parser Address
 pAddr 
     = do    {
-            char '['; m <- natural; addr <- choice[pArray m, pMatrix m]
+            char '['; m <- pExp; addr <- choice[pArray m, pMatrix m]
             ; return addr
             }
     <|>
@@ -301,7 +305,7 @@ pAddr
     <?>
     "address"
 
-pArray, pMatrix :: Integer -> Parser Address
+pArray, pMatrix :: Expr -> Parser Address
 
 pArray n
     = do
@@ -311,7 +315,7 @@ pArray n
 pMatrix m
     = do
         comma
-        n <- natural
+        n <- pExp
         char ']'
         return (Matrix m n)
 -----------------------------------------------------------------

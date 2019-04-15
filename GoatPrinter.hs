@@ -41,8 +41,9 @@ prettyDeclaration (Decl ident basetype addr) =
 
 prettyAddress :: Address -> String
 prettyAddress NoAddress = ""
-prettyAddress (Array n) = "[" ++ (show n) ++ "]"
-prettyAddress (Matrix m n) = "[" ++ (show m) ++ "," ++ (show n) ++ "]"
+prettyAddress (Array n) = "[" ++ (prettyExpression n) ++ "]"
+prettyAddress (Matrix m n) = 
+    "[" ++ (prettyExpression m) ++ "," ++ (prettyExpression n) ++ "]"
 
 prettyStatements :: [Stmt] -> Int -> String
 prettyStatements x n = 
@@ -77,7 +78,7 @@ prettyStatement (While expr stmts) n =
     (prettyStatements stmts (n+1)) ++ "\n" ++ (indent n) ++ "od"
 
 prettyExpressions :: [Expr] -> String
-prettyExpressions x = intercalate "\n" (map prettyExpression x)
+prettyExpressions x = intercalate ", " (map prettyExpression x)
 
 removeDoubleSlash :: String -> String
 removeDoubleSlash s = read $ "\"" ++ s ++ "\""

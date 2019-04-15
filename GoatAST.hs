@@ -45,8 +45,8 @@ data Decl
     deriving (Show, Eq)
 
 data Address 
-    = Array Integer 
-    | Matrix Integer Integer
+    = Array Expr 
+    | Matrix Expr Expr
     | NoAddress
     deriving (Show, Eq)
 
