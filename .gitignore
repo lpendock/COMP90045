@@ -2,3 +2,30 @@
 *.hi
 *.o
 *.exe
+Part 1/Goat.hs
+Part 1/GoatAST.hs
+Part 1/GoatPrinter.hs
+Part 1/hail.gt
+Part 1/Makefile
+Part 1/out
+Part 1/out.txt
+Part 1/TODO
+test/assoc.gt
+test/bell.gt
+test/gcd.gt
+test/matrixmul.gt
+test/missing_rel.bad.gt
+test/mode1.bad.gt
+test/mode2.bad.gt
+test/mode4.bad.gt
+test/mode3.bad.gt
+test/multivar1.bad.gt
+test/power.gt
+test/q1.gt
+test/q2.gt
+test/q3.gt
+test/q4.gt
+test/sort.gt
+test/stddev.gt
+test/test.gt
+out.txt
