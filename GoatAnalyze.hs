@@ -1,6 +1,8 @@
-module GoatInterpreter where
+module GoatTypeChecking (check_program) where
 
 import GoatAST
+import SymTable
+import PrettyPrinter
 import Data.Maybe
 
 type Lookup = (Ident, ParMode, GoatType)
@@ -21,28 +23,12 @@ data ParsedStmt
 
 --  TODO: Give more meaningful error messages.
 
-build_lookup_table :: Procedure -> LookupTable
-build_lookup_table (Procedure _ _ formalargspec decl _)
-  = map lookup_from_arg_spec formalargspec ++ (map lookup_from_decl decl)
+error_from_expr :: Pos -> Expr -> [ErrorMessage]
+error_from_expr pos expr = [ErrorMessage pos (ppExp False expr)]
 
-lookup_from_arg_spec :: FormalArgSpec -> Lookup
-lookup_from_arg_spec (FormalArgSpec _ parmode basetype ident) 
-  = (ident, parmode, Base basetype)
-
-lookup_from_decl :: Decl -> Lookup
-lookup_from_decl (Decl _ ident goattype) = (ident, Val, goattype)
-
-search_lookup_table :: Ident -> LookupTable -> Maybe Lookup
-search_lookup_table ident ((i, p, g):ls)
-  = if ident == i then Just (i,p,g) else search_lookup_table ident ls
-search_lookup_table _ [] = Nothing
-
-proc_from_ident :: Ident -> [Procedure] -> Maybe Procedure
-proc_from_ident ident ((Procedure pp pident pargs pdecls pstmts):xs) =
-  if ident == pident 
-    then Just (Procedure pp pident pargs pdecls pstmts)
-    else proc_from_ident ident xs
-proc_from_ident ident [] = Nothing
+--  Checks if an expression is well typed. Will return an updated expression if
+--  int-to-float conversion is necessary, and a series of error messages if the
+--  expression fails the type checking.
 
 check_expr :: Expr -> LookupTable -> ParsedExpr 
 check_expr expr table 
@@ -88,14 +74,15 @@ check_expr expr table
       BinOpExp p binop e1 e2
         -> let 
           ParsedExpr expr1 type1 message1 = check_expr e1 table
-          ParsedExpr expr2 type2 message2 = check_expr e2 table 
+          ParsedExpr expr2 type2 message2 = check_expr e2 table
+          expr = (BinOpExp p binop expr1 expr2) 
           in
           case (type1, type2) of
             (IntType, IntType)
-              -> ParsedExpr (BinOpExp p binop expr1 expr2) IntType 
+              -> ParsedExpr expr IntType 
                 (message1 ++ message2)
             (FloatType, FloatType)
-              -> ParsedExpr (BinOpExp p binop expr1 expr2) FloatType 
+              -> ParsedExpr expr FloatType 
                 (message1 ++ message2)
             (IntType, FloatType)
               -> ParsedExpr (BinOpExp p binop (ToFloat expr1) expr2) FloatType 
@@ -104,18 +91,21 @@ check_expr expr table
               -> ParsedExpr (BinOpExp p binop expr1 (ToFloat expr2)) FloatType 
                 (message1 ++ message2)
             (_, _)
-              -> ParsedExpr (BinOpExp p binop expr1 expr2) IntType 
-                (message1 ++ [ErrorMessage p "Type error"] ++ message2)
+              -> ParsedExpr expr IntType 
+                (message1 ++ (error_from_expr p expr) ++ message2)
       UnaryMinus p e1
-        -> let ParsedExpr expr1 type1 message1 = check_expr e1 table in
+        -> let 
+          ParsedExpr expr1 type1 message1 = check_expr e1 table
+          expr = UnaryMinus p expr1 
+          in
           case type1 of
             IntType
-              -> ParsedExpr (UnaryMinus p expr1) IntType message1
+              -> ParsedExpr expr IntType message1
             FloatType
-              -> ParsedExpr (UnaryMinus p expr1) FloatType message1
+              -> ParsedExpr expr FloatType message1
             _
-              -> ParsedExpr (UnaryMinus p expr1) FloatType 
-                (message1 ++ [ErrorMessage p "Type error"])
+              -> ParsedExpr expr FloatType 
+                (message1 ++ (error_from_expr p expr))
       Rel p relop e1 e2
         -> let 
           ParsedExpr expr1 type1 message1 = check_expr e1 table
@@ -145,16 +135,17 @@ check_expr expr table
       ArrayRef p ident e1
         -> let 
           ParsedExpr expr1 type1 message1 = check_expr e1 table
-          lookup = search_lookup_table ident table in
+          lookup = search_lookup_table ident table
+          expr = (ArrayRef p ident expr1)
+          err = error_from_expr p expr
+          in
           case lookup of
             Just (_, _, Array g num)
               -> if type1 == IntType 
-                then ParsedExpr (ArrayRef p ident expr1) g message1
-                else ParsedExpr (ArrayRef p ident expr1) g (message1 ++ 
-                  [ErrorMessage p "Indexing with non-Int"])
+                then ParsedExpr expr g message1
+                else ParsedExpr expr g (message1 ++ err)
             _
-              -> ParsedExpr (ArrayRef p ident expr1) IntType (message1 ++ 
-              [ErrorMessage p "Variable is not an array"])
+              -> ParsedExpr expr IntType (message1 ++ err)
       MatrixRef p ident e1 e2
         -> let 
           ParsedExpr expr1 type1 message1 = check_expr e1 table
@@ -286,7 +277,7 @@ check_stmt stmt table procedures
                   type_from_arg (FormalArgSpec _ _ b _) = b
                   arg_types = map (\x -> type_from_arg x) args
                 in
-                  if new_types == arg_types 
+                  if check_types_match new_types arg_types 
                     then ParsedStmt (ProcCall p ident new_exprs) new_err
                     else ParsedStmt (ProcCall p ident new_exprs) (new_err
                       ++ [ErrorMessage p "Type mismatch"])
@@ -341,6 +332,13 @@ check_stmt stmt table procedures
             _ 
               -> ParsedStmt (While pos new_expr new_stmts) (new_err ++ 
               [ErrorMessage pos "Non boolean in if statement"])
+
+--  expressions -> args -> bool                
+check_types_match :: [BaseType] -> [BaseType] -> Bool
+check_types_match [] [] = True
+check_types_match ((IntType):es) ((FloatType):as) = check_types_match es as
+check_types_match (e:es) (a:as) = 
+  if e == a then check_types_match es as else False
 
 data ParsedProc = ParsedProc Procedure [ErrorMessage]
 

@@ -10,6 +10,7 @@ where
 
 import GoatParser (ast)
 import PrettyPrinter (prettyPrint)
+import GoatTypeChecking (check_program)
 import System.Environment (getProgName, getArgs)
 import System.Exit (exitWith, ExitCode(..))
 
@@ -26,8 +27,17 @@ main
       case task of
         Compile 
           -> do
-               putStrLn "Sorry, unable to generate code at this point"
-               exitWith ExitSuccess
+               let [filename] = args
+               input <- readFile filename
+               let output = ast input
+               case output of
+                 Right tree 
+                   -> putStrLn (show (check_program tree))
+                 Left err 
+                   -> do { putStr "Parse error at "
+                         ; print err
+                         ; exitWith (ExitFailure 2) 
+                         }
         Parse
           -> do
                let [_, filename] = args
