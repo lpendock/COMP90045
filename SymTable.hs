@@ -82,19 +82,44 @@ data SlotStack
 buildStack :: SlotStack
 buildStack = SlotStack 0 Map.empty
 
-addIdentToStack :: Ident -> SlotStack -> SlotStack
-addIdentToStack ident (SlotStack size slots) = 
-  SlotStack (size+1) (insert ident (Slot size) slots)
+addIdentToStack :: Ident -> SlotStack -> Int -> SlotStack
+addIdentToStack ident (SlotStack size slots) n =
+  let 
+    newSlots = Map.map (\(Slot x) -> Slot (x + n)) slots
+  in  
+  SlotStack (size+n) (insert ident (Slot 0) newSlots)
 
 addIdentsToStack :: [Ident] -> SlotStack -> SlotStack
 addIdentsToStack idents stack = 
   case idents of
     [] -> stack
-    (x:xs) -> addIdentsToStack xs (addIdentToStack x stack)
+    (x:xs) -> addIdentsToStack xs (addIdentToStack x stack 1)
 
+addArgsToStack :: [FormalArgSpec] -> SlotStack -> SlotStack
+addArgsToStack args stack =
+  let
+    idents = Prelude.map (\(FormalArgSpec _ _ _ ident) -> ident) args
+  in
+    addIdentsToStack idents stack
+
+addDeclsToStack :: [Decl] -> SlotStack -> SlotStack
+addDeclsToStack decls stack =
+  case decls of
+    [] 
+      -> stack
+    ((Decl p ident goatType):ds)
+      ->
+        case goatType of
+          Base _ -> addDeclsToStack ds (addIdentToStack ident stack 1)
+          Array _ n -> addDeclsToStack ds (addIdentToStack ident stack n)
+          Matrix _ m n -> addDeclsToStack ds (addIdentToStack ident stack (m*n))
+    
 deleteIdentFromStack :: Ident -> SlotStack -> SlotStack
 deleteIdentFromStack ident (SlotStack size stack) =
-  SlotStack (size-1) (delete ident stack)
+  let 
+    newSlots = Map.map (\(Slot x) -> Slot (x - 1)) stack
+  in
+    SlotStack (size-1) (delete ident stack)
 
 deleteIdentsFromStack :: [Ident] -> SlotStack -> SlotStack
 deleteIdentsFromStack idents stack =

@@ -9,11 +9,11 @@ data Reg
 data OzLine 
   = LabelLine Label
   | InstrLine Instr
-  | ProcLine Ident
   deriving (Show, Eq)
 
 data Label
   = Label Int
+  | ProcLabel Ident
   deriving (Show, Eq)
 
 data BuiltinFunction 
@@ -78,6 +78,10 @@ data Instr
   | Branch_Uncond Label
 
   | Call_Builtin BuiltinFunction
+  | Call Label
+  | Return
+  | Halt
+
   deriving (Show, Eq)
 
 data OzCode

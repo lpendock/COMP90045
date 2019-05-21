@@ -147,9 +147,6 @@ check_expr expr table
             (BoolType, BoolType)
               -> ParsedExpr (Rel p relop expr1 expr2) BoolType (message1 ++ 
                 message2) et
-            (StringType, StringType)
-              -> ParsedExpr (Rel p relop expr1 expr2) BoolType (message1 ++ 
-                message2) et
             (_,_)
               -> ParsedExpr (Rel p relop expr1 expr2) BoolType (message1 ++ 
                 [ErrorMessage p "Type error"] ++ message2) et
@@ -213,7 +210,10 @@ check_stmt stmt table procedures
                 -> case goat_type of
                   Base basetype
                     -> case (basetype, expr_type) of
-                        (FloatType, IntType) -> good
+                        (FloatType, IntType) 
+                          -> 
+                            ParsedStmt (Assign p lvalue (ToFloat new_expr)) 
+                            message et
                         _ -> if basetype == expr_type then good else bad
                   _ -> bad
               _ -> bad
