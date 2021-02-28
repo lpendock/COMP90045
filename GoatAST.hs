@@ -54,7 +54,7 @@ data Expr
   | Rel Pos Relop Expr Expr
   | IntCon Pos Int
   | FloatCon Pos Float
-  | ToFloat Expr
+  | ToFloat Expr                    --  Addition
   | StrCon Pos String
   | Id Pos Ident
   | ArrayRef Pos Ident Expr

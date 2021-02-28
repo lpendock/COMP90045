@@ -8,6 +8,11 @@ import OzTree
 type LookupTable = Map Ident (ParMode, GoatType)
 type ProcTable = Map Ident Procedure
 
+--  This module provides a few data structures and types based on Map.Strict 
+
+--  The LookupTable stores the type information about the different variables in
+--  a procedure. A new table should be built for each procedure.
+
 buildEmptyTable :: LookupTable
 buildEmptyTable = Map.empty
 
@@ -31,6 +36,10 @@ getTypeFromLvalue lvalue table =
     LArrayRef _ ident _ ->  Map.lookup ident table
     LMatrixRef _ ident _ _ ->  Map.lookup ident table
 
+--  This stores the arguments of procedures. A query with the procedure's ident
+--  will return the argument information. This should be built when compiling
+--  the program, and should be passed to each procedure.
+
 buildProcTable :: [Procedure] -> ProcTable
 buildProcTable procedures =
   let
@@ -42,6 +51,11 @@ searchProcTable :: Ident -> ProcTable -> Maybe Procedure
 searchProcTable ident table = Map.lookup ident table
 
 type ExprTable = Map Pos BaseType
+
+--  This table gives the type of each expression in the program. In hindsight, I
+--  don't think I would include this table, and would instead have a BaseType
+--  in each of the Expr definitions. This is built during semantic analysis and
+--  should be given to the compiler.
 
 buildExprTable :: ExprTable
 buildExprTable = Map.empty
@@ -78,6 +92,10 @@ exprUnions xs = Map.unions xs
 
 data SlotStack 
   = SlotStack Int (Map Ident Slot)
+
+--  This is designed to keep a reference of the slot number of each of the
+--  variables in a procedure. For some reason, I made it actually serve as a
+--  stack. Obviously, I wouldn't bother if I made this again.
 
 buildStack :: SlotStack
 buildStack = SlotStack 0 Map.empty

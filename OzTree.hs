@@ -2,6 +2,10 @@ module OzTree where
 
 import GoatAST
 
+--  Somewhat copy-pasted from the lectures. OzLine stores a series of 
+--  instructions and labels. OzCode has a list of OzLines, as well as an
+--  indicator for the current label-number.
+
 data Reg
   = Reg Int
   deriving (Show, Eq)

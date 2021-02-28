@@ -4,6 +4,11 @@ import GoatAST
 import PrettyPrinter
 import Data.List
 
+--  The idea was for this module to have much more code than this, and output
+--  genuinely helpful error messages. Provides very simple error messages in
+--  case of a type-error or some other compile-time error that GoatAnalyze 
+--  manages to pick up.
+
 data ErrorMessage
   = ErrorMessage Pos String
   deriving (Eq)

@@ -3,20 +3,24 @@ module PrintOz (printOzCode) where
 import OzTree
 import Data.List (intercalate)
 
+--  A set of "quick and dirty" functions to transform the representation of Oz 
+--  code into a string. Mostly self-explanatory, just annoying to read.
+
 printOzCode :: OzCode -> String
-printOzCode (OzCode num lines) = concat (map printOzLine lines)
+printOzCode (OzCode num lines) = intercalate "\n" (map printOzLine lines)
 
 printOzLine :: OzLine -> String
 printOzLine line =
   case line of
-    LabelLine label -> "\n" ++ (printLabel label)  --fix this
-    InstrLine instr -> "\n    " ++ (printInstr instr)
+    LabelLine (Label label) ->  (printLabel (Label label)) ++ ":"
+    LabelLine (ProcLabel label) -> (printLabel (ProcLabel label)) ++ ":"
+    InstrLine instr -> "    " ++ (printInstr instr)
 
 printLabel :: Label -> String
 printLabel label =
   case label of
-    Label n -> "label_" ++ (show n) ++ ":"
-    ProcLabel ident -> "proc_" ++ ident ++ ":"
+    Label n -> "label_" ++ (show n) 
+    ProcLabel ident -> "proc_" ++ ident 
 
 printSlot :: Slot -> String
 printSlot (Slot n) = show n
@@ -43,7 +47,8 @@ printInstr instr =
     Int_Const r0 int -> "int_const " ++ (printReg r0) ++ ", " ++ (show int)           
     Real_Const r0 f -> "real_const " ++ (printReg r0) ++ ", " ++ (show f)
     Str_Const r0 string 
-      -> "string_const " ++ (printReg r0) ++ ", " ++ (show string)     
+      -> "string_const " ++ (printReg r0) ++ ", " 
+        ++ (show (removeDoubleSlash string))     
 
     Add_Int r0 r1 r2 
       -> "add_int " ++ (intercalate ", " (map printReg [r0,r1,r2]))       
@@ -129,3 +134,6 @@ printBuiltin f =
     Print_real -> "print_real"
     Print_bool -> "print_bool"
     Print_string -> "print_string"
+
+removeDoubleSlash :: String -> String
+removeDoubleSlash s = read $ "\"" ++ s ++ "\""

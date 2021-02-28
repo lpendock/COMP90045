@@ -5,6 +5,17 @@ import SymTable
 import GoatError
 import Data.Maybe
 
+--  The idea is for this suite of programs to parse through the AST, pick up
+--  type errors and undefined variables, and generate a revised abstract syntax
+--  tree that can then be compiled to Oz. This approach made sense to me, 
+--  because I thought that if you wanted to design a compiler to another 
+--  language, this intermediate step would still be necessary. It also made the
+--  AST-to-Oz section a bit easier, because I can assume that all the code is
+--  error free.
+--  I'm not sure if I would take this approach again however. It was rather
+--  tedious, and didn't really provide anything beyond compartmentalizing the
+--  process.
+
 data ParsedExpr
   = ParsedExpr Expr BaseType [ErrorMessage] ExprTable
   deriving (Show, Eq)
@@ -19,14 +30,13 @@ data ParsedProg
   = ParsedProg Program [ErrorMessage] ExprTable
   deriving (Show, Eq)
 
---  TODO: Give more meaningful error messages.
---  Ensure there is a "main" procedure.
-
 --  Checks if an expression is well typed. Will return an updated expression if
 --  int-to-float conversion is necessary, and a series of error messages if the
 --  expression fails the type checking.
-
-check_expr :: Expr -> LookupTable -> ParsedExpr 
+check_expr :: Expr            --  The expression getting checked
+              -> LookupTable  --  The types of the variables in the procedure
+              -> ParsedExpr   --  The expression, its basetype, errors (if any),
+                              --  and a symbol-table for the expressions.
 check_expr expr table 
   = case expr of
       BoolCon p b
@@ -185,13 +195,20 @@ check_expr expr table
                 [ErrorMessage p "Variable is not a matrix"] ++ message2) 
                 (addExprToTable p IntType et)
 
+--  Used to check if a series of expressions can serve as arguments for a
+--  procedure. Iterates over the lists, and makes sure they match.
 check_types_match :: [BaseType] -> [BaseType] -> Bool
 check_types_match [] [] = True
 check_types_match ((IntType):es) ((FloatType):as) = check_types_match es as
 check_types_match (e:es) (a:as) = 
   if e == a then check_types_match es as else False
 
-check_stmt :: Stmt -> LookupTable -> ProcTable -> ParsedStmt
+--  Like check_expr, this goes over the statements, revising the AST if need be,
+--  and returning any errors if they appear.
+check_stmt :: Stmt            --  The statement to be parsed.
+              -> LookupTable  --  Types of the identifiers.
+              -> ProcTable    --  Arguments of the procedures.
+              -> ParsedStmt   --  Revised statement and error messages.
 check_stmt stmt table procedures 
   = case stmt of
     Assign p lvalue expr
@@ -299,7 +316,7 @@ check_stmt stmt table procedures
       -> let
           (ParsedExpr new_expr type_1 message et) = check_expr expr table 
         in
-        ParsedStmt (Write p new_expr) message buildExprTable
+        ParsedStmt (Write p new_expr) message et
     ProcCall p ident exprs
       -> let 
           parsed_exprs = map (\x -> check_expr x table) exprs
@@ -388,7 +405,11 @@ check_stmt stmt table procedures
               -> ParsedStmt (While pos new_expr new_stmts) (new_err ++ 
               [ErrorMessage pos "Non boolean in if statement"]) new_et
 
-check_procedure :: Procedure -> ProcTable -> ParsedProc
+--  Update a procedure, using check_expr and check_stmt. Gives the revised AST
+--  and a list of errors.
+check_procedure ::  Procedure       --  The procedure getting checked. 
+                    -> ProcTable    --  Arguments of the procedures.
+                    -> ParsedProc   --  Updated procedure and errors.
 check_procedure (Procedure pos ident args decls stmts) proc_list = 
   let 
     table = buildLookupTable (Procedure pos ident args decls stmts)
@@ -402,7 +423,10 @@ check_procedure (Procedure pos ident args decls stmts) proc_list =
   in
     ParsedProc (Procedure pos ident args decls new_stmts) new_err new_et
 
-check_program :: Program -> ParsedProg
+--  Update the program using the above functions. Returns an updated AST with
+--  error messages.
+check_program :: Program        --  The program getting parsed. 
+                -> ParsedProg   --  Revised AST with error messages.
 check_program (Program procedures) =
   let
     proctable = buildProcTable procedures
